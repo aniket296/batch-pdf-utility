@@ -157,6 +157,8 @@ class WatermarkPanel(ttk.Frame):
         ttk.Label(self.image_frame, text="Scale (% of Page):").grid(
             row=0, column=3, sticky=tk.W, padx=(0, 6), pady=3
         )
+        self.scale_val_lbl = ttk.Label(self.image_frame, text="35%", width=5)
+        self.scale_val_lbl.grid(row=0, column=5, sticky=tk.W, pady=3)
         self.scale_slider = ttk.Scale(
             self.image_frame,
             from_=10,
@@ -166,9 +168,6 @@ class WatermarkPanel(ttk.Frame):
         )
         self.scale_slider.set(self.scale_pct_var.get())
         self.scale_slider.grid(row=0, column=4, sticky="ew", padx=(0, 6), pady=3)
-
-        self.scale_val_lbl = ttk.Label(self.image_frame, text="35%", width=5)
-        self.scale_val_lbl.grid(row=0, column=5, sticky=tk.W, pady=3)
         self.image_frame.columnconfigure(1, weight=1)
 
     def _build_shared_geometry_controls(self) -> None:
@@ -184,6 +183,8 @@ class WatermarkPanel(ttk.Frame):
         ttk.Label(self.shared_frame, text="Opacity (5%–100%):").grid(
             row=0, column=0, sticky=tk.W, padx=(0, 6), pady=4
         )
+        self.opacity_val_lbl = ttk.Label(self.shared_frame, text="25%", width=5)
+        self.opacity_val_lbl.grid(row=0, column=2, sticky=tk.W, padx=(0, 16), pady=4)
         self.opacity_slider = ttk.Scale(
             self.shared_frame,
             from_=5,
@@ -194,12 +195,11 @@ class WatermarkPanel(ttk.Frame):
         self.opacity_slider.set(self.opacity_pct_var.get())
         self.opacity_slider.grid(row=0, column=1, sticky="ew", padx=(0, 6), pady=4)
 
-        self.opacity_val_lbl = ttk.Label(self.shared_frame, text="25%", width=5)
-        self.opacity_val_lbl.grid(row=0, column=2, sticky=tk.W, padx=(0, 16), pady=4)
-
         ttk.Label(self.shared_frame, text="Rotation (-90° to +90°):").grid(
             row=0, column=3, sticky=tk.W, padx=(0, 6), pady=4
         )
+        self.rotation_val_lbl = ttk.Label(self.shared_frame, text="45°", width=5)
+        self.rotation_val_lbl.grid(row=0, column=5, sticky=tk.W, padx=(0, 6), pady=4)
         self.rotation_slider = ttk.Scale(
             self.shared_frame,
             from_=-90,
@@ -209,9 +209,6 @@ class WatermarkPanel(ttk.Frame):
         )
         self.rotation_slider.set(self.rotation_deg_var.get())
         self.rotation_slider.grid(row=0, column=4, sticky="ew", padx=(0, 6), pady=4)
-
-        self.rotation_val_lbl = ttk.Label(self.shared_frame, text="45°", width=5)
-        self.rotation_val_lbl.grid(row=0, column=5, sticky=tk.W, padx=(0, 6), pady=4)
 
         self.btn_preset_45 = ttk.Button(
             self.shared_frame,
