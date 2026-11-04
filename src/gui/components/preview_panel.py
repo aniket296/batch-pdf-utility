@@ -185,3 +185,4 @@ class PreviewPanel(ttk.Frame):
             self.canvas.create_image(cx, cy, image=self._photo_image, anchor=tk.CENTER)
         except Exception as exc:
             logger.error("Preview render error: %s", exc)
+

@@ -306,3 +306,4 @@ class FileQueueTable(ttk.Frame):
         """Emit the currently selected PDF file path to the preview listener."""
         if self.on_selection_change:
             self.on_selection_change(self.get_selected_file())
+

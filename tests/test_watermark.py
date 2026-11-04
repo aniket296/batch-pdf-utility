@@ -202,3 +202,4 @@ def test_preview_engine_and_multithreaded_batch_worker(
         assert res.output_path is not None
         assert Path(res.output_path).is_file()
         assert res.pages_processed == 3
+

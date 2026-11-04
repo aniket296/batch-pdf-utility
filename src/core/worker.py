@@ -274,3 +274,4 @@ class BatchProcessor:
         self._active_thread = thread
         thread.start()
         return thread
+

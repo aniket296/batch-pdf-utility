@@ -163,3 +163,4 @@ class MetadataPanel(ttk.Frame):
             producer=self.producer_var.get().strip(),
             wipe_all=bool(self.wipe_all_var.get()),
         )
+

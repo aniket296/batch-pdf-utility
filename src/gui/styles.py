@@ -227,3 +227,4 @@ def apply_corporate_theme(root: tk.Misc) -> ttk.Style:
     )
 
     return style
+

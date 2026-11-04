@@ -26,3 +26,4 @@ class TaskResult:
     pages_processed: int = 0
     error_message: Optional[str] = None
     duration_ms: float = 0.0
+

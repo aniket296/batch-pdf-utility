@@ -90,3 +90,4 @@ def sample_logo_png(tmp_path: Path) -> Path:
     )
     img.save(str(logo_path), format="PNG")
     return logo_path
+

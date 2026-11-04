@@ -40,3 +40,4 @@ if exist "dist\BatchPDFStudio.exe" (
     echo [ERROR] Expected output dist\BatchPDFStudio.exe was not found!
     exit /b 1
 )
+

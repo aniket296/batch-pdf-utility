@@ -157,3 +157,4 @@ Runtime logs are written to a rotating log file (`5 MB` max per file, 3 backups)
 ~/.batch_pdf_utility/app.log
 ```
 Live log events are simultaneously streamed into the collapsible **Live Activity Log Console** inside the desktop GUI.
+

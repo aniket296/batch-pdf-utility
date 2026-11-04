@@ -107,3 +107,4 @@ class BatchJobConfig:
     metadata: MetadataConfig = field(default_factory=MetadataConfig)
     watermark: WatermarkConfig = field(default_factory=WatermarkConfig)
     output: OutputConfig = field(default_factory=OutputConfig)
+

@@ -157,3 +157,4 @@ def discover_pdf_files(directory: str, recursive: bool = True) -> list[str]:
 
     unique_sorted = sorted({str(p) for p in matched}, key=lambda s: s.lower())
     return unique_sorted
+

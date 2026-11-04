@@ -141,3 +141,4 @@ def generate_preview_image(
             temp_doc.close()
         if src_doc is not None:
             src_doc.close()
+

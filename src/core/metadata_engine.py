@@ -136,3 +136,4 @@ def apply_metadata(doc: fitz.Document, config: MetadataConfig) -> None:
     if updated_any:
         logger.debug("Applying selective metadata updates to PDF.")
         doc.set_metadata(cleaned_meta)
+

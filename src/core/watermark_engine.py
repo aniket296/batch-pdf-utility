@@ -218,3 +218,4 @@ def apply_watermark(doc: fitz.Document, config: WatermarkConfig) -> int:
         return pages_watermarked
 
     return 0
+

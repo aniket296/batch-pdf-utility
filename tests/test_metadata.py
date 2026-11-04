@@ -85,3 +85,4 @@ def test_full_metadata_and_xmp_wipe(
     assert meta["creationDate"] == ""
     assert meta["modDate"] == ""
     assert meta["has_xml_metadata"] is False
+

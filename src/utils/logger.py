@@ -81,3 +81,4 @@ def get_log_queue() -> queue.Queue[logging.LogRecord]:
     """Return the shared thread-safe queue containing formatted log records for the GUI."""
     setup_logger()
     return _LOG_QUEUE
+
