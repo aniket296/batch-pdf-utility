@@ -68,3 +68,4 @@ if exist "dist_installer\BatchPDFStudio_Setup.exe" (
     echo [ERROR] Expected installer dist_installer\BatchPDFStudio_Setup.exe was not found!
     exit /b 1
 )
+
