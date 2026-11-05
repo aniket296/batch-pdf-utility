@@ -3,16 +3,21 @@
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 from typing import Optional
 
 from src.models.job_config import CollisionStrategy, OutputConfig
+
+_UNSAFE_FILENAME_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
+_MAX_RESERVE_ATTEMPTS = 10_000
 
 
 def resolve_output_path(
     source_path: str,
     output_config: OutputConfig,
     base_root: Optional[str] = None,
+    reserve: bool = False,
 ) -> str:
     """Resolve a collision-safe output file path that never overwrites the source file.
 
@@ -20,6 +25,8 @@ def resolve_output_path(
         source_path: Path to the original input PDF file.
         output_config: Output directory, suffix, and collision strategy settings.
         base_root: Optional root directory when using MIRROR_TREE strategy.
+        reserve: If True, atomically create an empty placeholder file at the returned path
+            so concurrent callers can never receive the same destination.
 
     Returns:
         Absolute path string to a non-existing, collision-safe destination PDF path.
@@ -27,7 +34,9 @@ def resolve_output_path(
     src = Path(source_path).resolve()
     stem = src.stem
     ext = src.suffix if src.suffix else ".pdf"
-    suffix = output_config.suffix if output_config.suffix is not None else "_processed"
+    raw_suffix = output_config.suffix if output_config.suffix is not None else "_processed"
+    # Strip path separators / reserved characters so a suffix can never redirect output elsewhere.
+    suffix = _UNSAFE_FILENAME_CHARS.sub("_", raw_suffix)
 
     strategy = output_config.strategy
     out_dir_raw = (output_config.output_dir or "").strip()
@@ -60,9 +69,26 @@ def resolve_output_path(
         candidate_stem = f"{stem}_processed"
         candidate = (target_dir / f"{candidate_stem}{ext}").resolve()
 
-    # Auto-increment (_1, _2, ...) if the destination file already exists or matches source
+    # Auto-increment (_1, _2, ...) if the destination file already exists or matches source.
+    # With reserve=True the name is claimed atomically (O_EXCL) so concurrent workers can
+    # never be handed the same destination (check-then-write race).
     counter = 1
-    while candidate.exists() or candidate == src:
+    attempts = 0
+    while True:
+        attempts += 1
+        if attempts > _MAX_RESERVE_ATTEMPTS:
+            raise OSError(f"Could not find a free output filename in {target_dir}")
+        if candidate != src:
+            if not reserve:
+                if not candidate.exists():
+                    break
+            else:
+                try:
+                    os.close(os.open(candidate, os.O_CREAT | os.O_EXCL | os.O_WRONLY))
+                    break
+                except (FileExistsError, PermissionError):
+                    # On Windows a delete-pending file raises PermissionError; treat as taken.
+                    pass
         candidate = (target_dir / f"{candidate_stem}_{counter}{ext}").resolve()
         counter += 1
 

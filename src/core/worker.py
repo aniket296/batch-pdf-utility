@@ -28,6 +28,18 @@ FileCompleteCallback = Callable[[TaskResult], None]
 BatchCompleteCallback = Callable[[list[TaskResult]], None]
 
 
+def _replace_with_retry(src: str, dst: str, attempts: int = 20, delay_s: float = 0.05) -> None:
+    """os.replace with short retries: on Windows, antivirus/indexers transiently hold files."""
+    for attempt in range(attempts):
+        try:
+            os.replace(src, dst)
+            return
+        except PermissionError:
+            if attempt == attempts - 1:
+                raise
+            time.sleep(delay_s)
+
+
 class BatchProcessor:
     """Executes batch PDF metadata and watermarking jobs across a thread pool."""
 
@@ -84,6 +96,7 @@ class BatchProcessor:
 
         logger.info("Processing PDF: %s", source_path)
 
+        reserved_output: Optional[str] = None
         try:
             src_file = Path(source_path)
             if not src_file.is_file():
@@ -93,7 +106,9 @@ class BatchProcessor:
                 source_path=source_path,
                 output_config=job_config.output,
                 base_root=base_root,
+                reserve=True,
             )
+            reserved_output = output_path
 
             with fitz.open(str(src_file)) as doc:
                 if doc.is_encrypted:
@@ -119,8 +134,12 @@ class BatchProcessor:
                 if self._stop_event.is_set():
                     raise InterruptedError("Batch job cancelled before saving output.")
 
-                # 3. Save with full garbage collection and stream deflation
-                doc.save(output_path, garbage=4, deflate=True)
+                # 3. Save with full garbage collection and stream deflation. Write to a temp
+                # file and atomically replace the reserved placeholder so concurrent workers
+                # never observe a deleted/half-written destination.
+                temp_output = f"{output_path}.tmp"
+                doc.save(temp_output, garbage=4, deflate=True)
+            _replace_with_retry(temp_output, output_path)
 
             elapsed_ms = (time.perf_counter() - start_time) * 1000.0
             result = TaskResult(
@@ -140,6 +159,13 @@ class BatchProcessor:
             )
 
         except Exception as exc:
+            if reserved_output is not None:
+                # Remove the empty placeholder (or partial file) left by a failed/cancelled job.
+                try:
+                    Path(reserved_output).unlink(missing_ok=True)
+                    Path(f"{reserved_output}.tmp").unlink(missing_ok=True)
+                except OSError as cleanup_err:
+                    logger.warning("Could not remove %s: %s", reserved_output, cleanup_err)
             elapsed_ms = (time.perf_counter() - start_time) * 1000.0
             result = TaskResult(
                 source_path=source_path,
