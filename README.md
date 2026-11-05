@@ -50,8 +50,11 @@ batch-pdf-utility/
 │   │   └── styles.py       # Slate & Navy corporate styling system
 │   ├── models/             # Strongly-typed dataclasses & job schemas
 │   └── utils/              # Thread-safe logging and collision-safe file operations
+├── installer/              # Inno Setup Windows installer configuration
+│   └── setup.iss
 ├── scripts/                # Automated build and packaging scripts
-│   └── build_exe.bat
+│   ├── build_exe.bat
+│   └── build_installer.bat
 ├── tests/                  # Automated pytest verification suite
 │   ├── conftest.py
 │   ├── test_metadata.py
@@ -66,6 +69,14 @@ batch-pdf-utility/
 ---
 
 ## 🚀 Quick Start & Dual-Mode Execution
+
+### Option 0: Windows Installer (For End Users)
+
+1. Go to the [**GitHub Releases**](https://github.com/aniket296/batch-pdf-utility/releases) page and download **`BatchPDFStudio_Setup.exe`**.
+2. Run **`BatchPDFStudio_Setup.exe`** to install **Batch PDF Metadata & Watermarking Studio** with optional Desktop and Start Menu shortcuts.
+3. You can uninstall the application cleanly at any time via **Windows Settings → Installed Apps** (or Control Panel).
+
+---
 
 ### Option A: Run Directly from Source (Developers)
 
@@ -109,7 +120,7 @@ To run the complete test suite verifying metadata sanitization, watermarking geo
 
 ---
 
-## 🔨 Building the Executable from Source
+## 🔨 Building the Executable & Windows Installer from Source
 
 To compile the standalone Windows executable yourself using PyInstaller:
 
@@ -118,6 +129,14 @@ To compile the standalone Windows executable yourself using PyInstaller:
 ```
 
 This script will run unit tests first, compile the binary using `build_windows.spec`, and verify the final artifact at `dist\BatchPDFStudio.exe`.
+
+To compile the full Windows Setup Installer (`dist_installer\BatchPDFStudio_Setup.exe`) using [Inno Setup 6](https://jrsoftware.org/isinfo.php):
+
+```powershell
+.\scripts\build_installer.bat
+```
+
+This script automatically runs `scripts\build_exe.bat` first, locates `ISCC.exe`, compiles `installer\setup.iss`, and outputs `dist_installer\BatchPDFStudio_Setup.exe` ready for GitHub Releases.
 
 ---
 
