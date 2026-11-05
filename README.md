@@ -1,160 +1,126 @@
-# Batch PDF Studio — Metadata & Watermarking Utility
+# 📄 Batch PDF Metadata & Watermarking Studio
 
-An enterprise-grade, multi-module Windows desktop application built with Python 3.11+, **PyMuPDF (`fitz`)**, **Pillow**, and **High-DPI Tkinter (`ttk`)** for high-throughput batch PDF metadata sanitization, custom property injection, and dual-mode watermarking with live multi-page visual preview.
+[![Platform: Windows](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?logo=windows&logoColor=white)](https://microsoft.com)
+[![Python: 3.11+](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://python.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Architecture: Modular](https://img.shields.io/badge/Architecture-Clean%20%2F%20Modular-blueviolet)](#architecture)
+[![Build: PyInstaller](https://img.shields.io/badge/Packaged%20With-PyInstaller-yellow)](https://pyinstaller.org)
 
----
-
-## Key Features
-
-### 1. PDF Metadata Engine (Selective Injection & Complete Forensic Sanitization)
-- **Selective Property Injection:** Update `Title`, `Author`, `Subject`, `Keywords`, `Creator`, and `Producer` across hundreds of PDFs while preserving untouched fields when inputs are left blank.
-- **One-Click Metadata Inspector:** Load and inspect existing metadata from any queued PDF directly into the editor form.
-- **Complete Metadata & XMP Scrub (`wipe_all=True`):** Scrubs all standard `/Info` dictionary keys (`title`, `author`, `subject`, `keywords`, `creator`, `producer`, `creationDate`, `modDate`), removes document-level XML/XMP metadata streams (`del_xml_metadata()`), and clears catalog/page `/Metadata` and `/PieceInfo` entries.
-
-### 2. Dual-Mode Watermark Engine (Vector Text & Transparent PNG Logos)
-- **Vector Text Stamps:** Configurable stamp string, font size, RGB color picker, opacity (`5%`–`100%`), and arbitrary rotation (`-90°` to `+90°`, plus quick `45°` and `0°` presets) rendered via `fitz.TextWriter` with morph rotation matrices.
-- **Transparent Corporate Logo Overlay (PNG):** Loads RGBA PNG files via `Pillow`, modulates the alpha channel proportionally by opacity, scales relative to page geometry, and rotates cleanly (`BICUBIC`, `expand=True`).
-- **3 Geometric Layouts:**
-  - **Single Center:** Centered stamp on target pages.
-  - **Diagonal Stamp:** Dead-center diagonal orientation across the page.
-  - **Repeated Tiled Grid:** Multi-row, multi-column staggered lattice across the entire page bounding box to prevent cropping.
-- **Flexible Page Range Targeting:** Apply watermarks to `"all"` pages or custom 1-based ranges (e.g., `"1-3, 5"`).
-
-### 3. Non-Destructive Live Preview & Multi-Threaded Batch Processing
-- **In-Memory Live Preview (`preview_engine.py`):** Clones only the active preview page into an in-memory `fitz.Document`, applies the current watermark configuration with a `250ms` debounce, and renders onto the High-DPI Tkinter canvas with `< Prev Page` / `Next Page >` navigation.
-- **Multi-Threaded Worker Pool (`worker.py`):** Processes batches concurrently via `ThreadPoolExecutor` with graceful cancellation (`threading.Event`), garbage-collected PDF saving (`garbage=4, deflate=True`), and non-blocking `root.after()` UI progress and log streaming.
-- **Zero-Overwrite Collision Protection (`file_ops.py`):** Supports appending custom suffixes in the source folder, saving to a dedicated output folder, or mirroring nested folder trees—auto-incrementing (`_1`, `_2`) whenever destination filenames collide.
+> **A high-performance, 100% offline desktop application for batch PDF processing.** Modify or completely scrub sensitive metadata, apply custom text or corporate image watermarks, and inspect changes in real-time with zero cloud exposure.
 
 ---
 
-## Modular Architecture
+## 🌟 Why This Exists (Real-World Impact)
 
-```mermaid
-flowchart TD
-    Main["src/main.py<br/>High-DPI Entry Point"] --> App["src/gui/app.py<br/>BatchPDFApp Controller"]
+Most free PDF editing tools operate online, forcing legal, financial, healthcare, and educational teams to upload sensitive documents to third-party cloud servers. This introduces significant privacy and compliance risks.
 
-    subgraph GUI ["Native Windows GUI Layer (src/gui/)"]
-        App --> Styles["styles.py<br/>Slate & Navy ttk Theme"]
-        App --> FileTable["components/file_table.py<br/>Batch Queue Treeview"]
-        App --> MetaPanel["components/metadata_panel.py<br/>Metadata Inspector & Wipe UI"]
-        App --> WmPanel["components/watermark_panel.py<br/>Dual-Mode Watermark Designer"]
-        App --> PrevPanel["components/preview_panel.py<br/>Interactive Multi-Page Canvas"]
-    end
+**Batch PDF Metadata & Watermarking Studio** solves this problem by executing all operations strictly on your local machine:
+- 🔒 **Absolute Data Privacy:** Documents never leave your hardware.
+- ⚡ **No Upload/Download Bottlenecks:** Process hundreds of multi-page PDFs using local CPU power.
+- 📴 **100% Offline Autonomy:** Works reliably in air-gapped or restricted network environments.
 
-    subgraph Core ["Core Processing Engines (src/core/)"]
-        PrevPanel --> PrevEngine["preview_engine.py<br/>In-Memory Page Cloner"]
-        App --> Worker["worker.py<br/>ThreadPoolExecutor BatchProcessor"]
-        Worker --> MetaEngine["metadata_engine.py<br/>Info & XMP Scrub / Update"]
-        Worker --> WmEngine["watermark_engine.py<br/>TextWriter & RGBA Logo Overlay"]
-        PrevEngine --> WmEngine
-    end
+---
 
-    subgraph Foundation ["Models & Utilities (src/models/ & src/utils/)"]
-        Worker --> Models["job_config.py & task_result.py<br/>Strongly-Typed Dataclasses"]
-        Worker --> FileOps["file_ops.py<br/>Collision-Safe Path & Page Parser"]
-        Worker --> Logger["logger.py<br/>Rotating File + QueueHandler"]
-    end
-```
+## ✨ Key Features
 
-### Directory Structure
+- **🛡️ Full Metadata Scrubbing:** One-click sanitize mode wipes author info, editing history, and hidden XMP metadata packets.
+- **✏️ Targeted Metadata Editing:** Selectively update Title, Author, Subject, and Keywords without altering untouched fields.
+- **💧 Dual-Mode Watermarking:** Apply customizable vector text stamps or transparent PNG corporate logos.
+- **📐 Flexible Layouts:** Choose between centered stamps, diagonal banner overlays, or anti-crop tiled grid patterns.
+- **👁️ Live Interactive Preview:** Non-destructive in-memory renderer shows real-time watermark placement before running the batch.
+- **🛡️ Collision-Safe Output:** Never overwrites originals by default; supports custom suffixes and dedicated destination folders.
+
+---
+
+## 🏗️ Architecture
+
+Built using a clean, multi-module separation of concerns:
 
 ```text
 batch-pdf-utility/
-├── .gitignore
-├── README.md
-├── pyproject.toml
-├── build_windows.spec
-├── scripts/
-│   └── build_exe.bat
 ├── src/
-│   ├── __init__.py
-│   ├── main.py
-│   ├── core/
-│   │   ├── __init__.py
+│   ├── core/               # Pure business logic (PyMuPDF engines & worker pool)
 │   │   ├── metadata_engine.py
 │   │   ├── watermark_engine.py
 │   │   ├── preview_engine.py
 │   │   └── worker.py
-│   ├── gui/
-│   │   ├── __init__.py
-│   │   ├── app.py
-│   │   ├── styles.py
-│   │   └── components/
-│   │       ├── __init__.py
-│   │       ├── file_table.py
-│   │       ├── metadata_panel.py
-│   │       ├── watermark_panel.py
-│   │       └── preview_panel.py
-│   ├── models/
-│   │   ├── __init__.py
-│   │   ├── job_config.py
-│   │   └── task_result.py
-│   └── utils/
-│       ├── __init__.py
-│       ├── file_ops.py
-│       └── logger.py
-└── tests/
-    ├── __init__.py
-    ├── conftest.py
-    ├── test_metadata.py
-    └── test_watermark.py
+│   ├── gui/                # Desktop UI layer (Tkinter / TTK)
+│   │   ├── components/     # File queue, preview canvas, and settings forms
+│   │   ├── app.py          # Application shell & thread orchestration
+│   │   └── styles.py       # Slate & Navy corporate styling system
+│   ├── models/             # Strongly-typed dataclasses & job schemas
+│   └── utils/              # Thread-safe logging and collision-safe file operations
+├── scripts/                # Automated build and packaging scripts
+│   └── build_exe.bat
+├── tests/                  # Automated pytest verification suite
+│   ├── conftest.py
+│   ├── test_metadata.py
+│   └── test_watermark.py
+├── release/                # Pre-built standalone Windows binary
+│   └── BatchPDFStudio.exe
+├── requirements.txt        # Core package requirements
+├── run_local.bat           # One-click local source launcher
+└── pyproject.toml          # Project configuration & dependencies
 ```
 
 ---
 
-## Developer Setup & Running from Source
+## 🚀 Quick Start & Dual-Mode Execution
 
-1. **Create and activate a virtual environment:**
-   ```powershell
-   python -m venv .venv
-   .\.venv\Scripts\Activate.ps1
-   ```
+### Option A: Run Directly from Source (Developers)
 
-2. **Install the package in editable mode with development dependencies:**
-   ```powershell
-   pip install -e ".[dev]"
-   ```
+Using the automated one-click launcher:
+```powershell
+.\run_local.bat
+```
+> **What `run_local.bat` does:**
+> 1. Automatically creates a virtual environment in `.venv/` if not present.
+> 2. Installs or updates all required dependencies (`PyMuPDF`, `Pillow`).
+> 3. Launches the application from source (`python -m src.main`).
+> 4. Keeps the console open on error for rapid debugging.
 
-3. **Launch the desktop application:**
-   ```powershell
-   python -m src.main
-   # Or via the registered entry-point script:
-   batch-pdf-studio
-   ```
-
-4. **Run the automated unit test suite:**
-   ```powershell
-   pytest
-   ```
+Or run manually via Python:
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python -m src.main
+```
 
 ---
 
-## Building the Standalone Windows `.exe`
+### Option B: Run Standalone Executable (No Python Required)
 
-A complete PyInstaller specification (`build_windows.spec`) and automated batch build script (`scripts\build_exe.bat`) are included.
+Double-click the pre-built binary located at:
+```text
+release\BatchPDFStudio.exe
+```
+This is a standalone, self-contained Windows executable packaged with all required runtime dependencies.
+
+---
+
+## 🧪 Running Automated Unit Tests
+
+To run the complete test suite verifying metadata sanitization, watermarking geometry, and collision safety:
 
 ```powershell
-# Run tests, compile windowed executable, and verify output:
+.\.venv\Scripts\pytest
+```
+
+---
+
+## 🔨 Building the Executable from Source
+
+To compile the standalone Windows executable yourself using PyInstaller:
+
+```powershell
 .\scripts\build_exe.bat
 ```
 
-Or run PyInstaller directly:
-```powershell
-pyinstaller --noconfirm --clean build_windows.spec
-```
-
-The standalone executable will be generated at:
-```text
-dist\BatchPDFStudio.exe
-```
+This script will run unit tests first, compile the binary using `build_windows.spec`, and verify the final artifact at `dist\BatchPDFStudio.exe`.
 
 ---
 
-## Application Logs
+## 📜 License
 
-Runtime logs are written to a rotating log file (`5 MB` max per file, 3 backups) at:
-```text
-~/.batch_pdf_utility/app.log
-```
-Live log events are simultaneously streamed into the collapsible **Live Activity Log Console** inside the desktop GUI.
-
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
