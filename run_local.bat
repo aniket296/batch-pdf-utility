@@ -25,3 +25,4 @@ echo [ERROR] Execution failed. See the messages above for details.
 pause
 endlocal
 exit /b 1
+
